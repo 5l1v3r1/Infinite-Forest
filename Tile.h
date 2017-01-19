@@ -10,6 +10,12 @@
 #include <cstdlib> // rand
 #include <ctime> // time
 
+//hackery
+#define n cardinal[0]
+#define s cardinal[1]
+#define e cardinal[2]
+#define w cardinal[3]
+
 
 class Tile
 {
@@ -18,7 +24,7 @@ class Tile
     enum Tiletype { grass, water, secretshop, tree } tileType;
     
 public:
-    Tile *n, *s, *e, *w;
+    Tile* cardinal[4] = {NULL, NULL, NULL, NULL};
     
     Tile();
     ~Tile();
@@ -33,11 +39,6 @@ public:
 
 Tile::Tile() : id(++count) //Tiletype x=grass
 {
-    n = NULL;
-    s = NULL;
-    e = NULL;
-    w = NULL;
-    
     //logic for tileType
     int x = rand() %100;
     if(x == 99) tileType = secretshop;
@@ -50,10 +51,9 @@ Tile::Tile() : id(++count) //Tiletype x=grass
 //This does not allow for Constructor arguments!!!
 void Tile::createEdges() //On the Heap
 {
-    if(n == NULL) n = new Tile;
-    if(s == NULL) s = new Tile;
-    if(e == NULL) e = new Tile;
-    if(w == NULL) w = new Tile;
+    for(int i=0;i<4;i++)
+        if(cardinal[i]==NULL) cardinal[i] = new Tile;
+        
     reverseLink();
 }
 
