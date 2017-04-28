@@ -10,17 +10,18 @@
 #include <cstdlib> // rand
 #include <ctime> // time
 
+const char* Tilenames[5] = {"grass", "water", "fire", "tree", "wormhole"};
 
 class Tile
 {
-    const int id;
-    static int count;
-    enum Tiletype { grass, water, secretshop, tree } tileType;
-    
+    //const unsigned int id;
+    //static unsigned int count;
 public:
+    enum Tiletype { grass, water, fire, tree, wormhole } tileType;
     Tile *n, *s, *e, *w;
     
     Tile();
+    Tile(Tiletype explicitTile);
     ~Tile();
     void debugTile(const char* name);
     void debugAllTiles(const char* name);
@@ -31,20 +32,28 @@ public:
     Tile* gotoTile(int mask, Tile* dir);
 };
 
-Tile::Tile() : id(++count) //Tiletype x=grass
+Tile::Tile(Tiletype explicitTile)// : id(++count) //Tiletype x=grass
 {
     n = NULL;
     s = NULL;
     e = NULL;
     w = NULL;
-    
-    //logic for tileType
-    int x = rand() %100;
-    if(x == 99) tileType = secretshop;
-    else if (x<70) tileType = grass;
-    else if (x<80) tileType = tree;
-    else tileType = water;
+    tileType = explicitTile;
+}
 
+Tile::Tile()// : id(++count) //Tiletype x=grass
+{
+    n = NULL;
+    s = NULL;
+    e = NULL;
+    w = NULL;
+
+    //logic for deciding the tiletype
+    int x = rand() %100;
+    if(x == 99) tileType = wormhole;
+    else if(x>80) tileType = tree;
+    else if(x>50) tileType = water;
+    else tileType = grass;
 }
 
 //This does not allow for Constructor arguments!!!
@@ -54,7 +63,7 @@ void Tile::createEdges() //On the Heap
     if(s == NULL) s = new Tile;
     if(e == NULL) e = new Tile;
     if(w == NULL) w = new Tile;
-    reverseLink();
+    this->reverseLink();
 }
 
 void Tile::reverseLink()
@@ -81,29 +90,52 @@ Tile* Tile::movePlayer(const char direction)
     else if(direction=='e') return gotoTile(13, e);
     else if(direction=='w') return gotoTile(14, w);
 
-    std::cout << "you decide to go an unknown direction, but get confused" << std::endl;
-    std::cout << "you stand still in confusion" << std::endl;
+    std::cout << "Umm. What?! How did you..." << std::endl;
+    std::cout << "You decide to go an unknown direction, but get confused" << std::endl;
+    std::cout << "You stand still in confusion" << std::endl;
     return this;
 }
 
 Tile* Tile::gotoTile(int mask, Tile* dir)
 {
-    if(dir->tileType==tree)
+
+    switch(dir->tileType)
     {
-        std::cout << "you try to walk into a tree.";
-        std::cout << "you look like an idiot. nothing happens";
-        std::cout << std::endl;
-        return this;
+        //dont go anywhere because trees cant be moved through
+        case tree:
+            std::cout << "you try running into a tree. you look like an idiot.\n\
+            it hurts, but you dont move anywhere." << std::endl;
+            return this;
+            break;
+
+        //delete all edges, change tile, then regenerate.
+        //this simulates teleportation
+        case wormhole:
+            std::cout << "you decide to step into a wormhole and are magically teleported!" << std::endl;
+            this->deleteEdges(15);
+            this->createEdges();
+            return this;
+            break;
+
+        case fire:
+            std::cout << "you are on fire!" << std::endl;
+            std::cout << "good thing theres not health mechanic. YET!" << std::endl;
+            //fallthrough
+
+        //nothing special about these blocks.
+        //move the player.
+        case grass:
+        case water:
+            deleteEdges(mask);
+            dir->createEdges();
+            return dir;
+            break;
+
+        default:
+            std::cout << "you did something very weird. or i forgot some code xD" << std::endl;
+            std::cout << "I guess for now just dont go there? sorry.";
+            std::cout << "(you were not moved)" << std::endl;
+            return this;
+
     }
-    
-    deleteEdges(mask);
-    dir->createEdges();
-    return dir;
 }
-
-
-
-
-
-
-
